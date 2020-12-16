@@ -59,6 +59,20 @@ def main():
     parser.add_argument("--model_dir", type=str, help="Directory for saving models.", default=model_dir_default)
     parser.add_argument("--model_filename", type=str, help="Model filename.", default=model_filename_default)
     parser.add_argument("--resume", action="store_true", help="Resume training from saved checkpoint.")
+    # adding extra arguments to accept shared file path, world size and current global rank
+    parser.add_argument('--init_fs_path',
+                        type=str, default="./",
+                        help="File system path for distributed training with init_method using shared file system \n"
+                             "./ (default value): current directory\n")
+    parser.add_argument('--node_rank',
+                        type=int, default=0,
+                        help="Rank of current node \n"
+                             "0 (default value): rank of current node\n")
+    parser.add_argument('--nodes_count',
+                        type=int, default=1,
+                        help="Number of nodes to determine the world size for distributed training \n"
+                             "1 (default value): count of nodes\n")
+
     argv = parser.parse_args()
 
     local_rank = argv.local_rank
@@ -83,7 +97,11 @@ def main():
     set_random_seeds(random_seed=random_seed)
 
     # Initializes the distributed backend which will take care of sychronizing nodes/GPUs
-    torch.distributed.init_process_group(backend="nccl")
+    torch.distributed.init_process_group(backend="nccl",
+                                         init_method='file://' + argv.init_fs_path,
+                                         rank=argv.node_rank,
+                                         world_size=argv.nodes_count
+                                         )
     # torch.distributed.init_process_group(backend="gloo")
 
     # Encapsulate the model on the GPU assigned to the current process
@@ -125,7 +143,7 @@ def main():
     # Loop over the dataset multiple times
     for epoch in range(num_epochs):
 
-        print("Local Rank: {}, Epoch: {}, Training ...".format(local_rank, epoch))
+        print("Global rank: {}, Local Rank: {}, Epoch: {}, Training ...".format(torch.distributed.get_rank(),local_rank, epoch))
 
         # Save and evaluate model routinely
         if epoch % 10 == 0:
