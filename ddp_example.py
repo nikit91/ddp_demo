@@ -81,7 +81,7 @@ def main():
     learning_rate = argv.learning_rate
     random_seed = argv.random_seed
     model_dir = argv.model_dir
-    model_filename = argv.model_filename
+    model_filename = argv.model_filename+torch.distributed.get_rank()
     resume = argv.resume
 
     # Create directories outside the PyTorch program
