@@ -81,7 +81,7 @@ def main():
     learning_rate = argv.learning_rate
     random_seed = argv.random_seed
     model_dir = argv.model_dir
-    model_filename = argv.model_filename+torch.distributed.get_rank()
+    model_filename = argv.model_filename
     resume = argv.resume
 
     # Create directories outside the PyTorch program
@@ -149,7 +149,7 @@ def main():
         if epoch % 10 == 0:
             if local_rank == 0:
                 accuracy = evaluate(model=ddp_model, device=device, test_loader=test_loader)
-                torch.save(ddp_model.state_dict(), model_filepath)
+                torch.save(ddp_model.state_dict(), model_filepath+torch.distributed.get_rank())
                 print("-" * 75)
                 print("Epoch: {}, Accuracy: {}".format(epoch, accuracy))
                 print("-" * 75)
