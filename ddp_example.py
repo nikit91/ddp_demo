@@ -149,7 +149,7 @@ def main():
         if epoch % 10 == 0:
             if local_rank == 0:
                 accuracy = evaluate(model=ddp_model, device=device, test_loader=test_loader)
-                torch.save(ddp_model.state_dict(), model_filepath+torch.distributed.get_rank())
+                torch.save(ddp_model.state_dict(), model_filepath+str(torch.distributed.get_rank()))
                 print("-" * 75)
                 print("Epoch: {}, Accuracy: {}".format(epoch, accuracy))
                 print("-" * 75)
